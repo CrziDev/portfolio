@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Dark is the default theme; [data-theme="light"] below
+ * overrides the same variables, so markup never needs `dark:` variants.
+ */
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-canvas: #0b0e14;
+  --color-surface: #12171e;
+  --color-surface-hover: #1a2028;
+  --color-line: #292f35;
+  --color-line-strong: #51565b;
+  --color-fg: #c8ced3;
+  --color-fg-muted: #7a828b;
+  --color-accent: #4c90de;
+  --color-chip: #1b2736;
+  --color-success: #219038;
+
+  --color-contrib-0: #12171e;
+  --color-contrib-1: #0c3b23;
+  --color-contrib-2: #005e2b;
+  --color-contrib-3: #219038;
+  --color-contrib-4: #31b748;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+
+    --color-canvas: #ffffff;
+    --color-surface: #f6f8fa;
+    --color-surface-hover: #eef1f4;
+    --color-line: #d1d9e0;
+    --color-line-strong: #8c959f;
+    --color-fg: #1f2328;
+    --color-fg-muted: #59636e;
+    --color-accent: #0969da;
+    --color-chip: #ddf4ff;
+    --color-success: #1a7f37;
+
+    --color-contrib-0: #eff2f5;
+    --color-contrib-1: #aceebb;
+    --color-contrib-2: #4ac26b;
+    --color-contrib-3: #2da44e;
+    --color-contrib-4: #116329;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-fg antialiased;
+  }
+}

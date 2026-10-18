@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>John Michael Bughao · Full Stack Developer</title>
+    <meta
+      name="description"
+      content="Full Stack Developer with 3+ years of experience and a strong focus on backend development."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23c8ced3'/><text x='16' y='21' font-family='monospace' font-size='15' text-anchor='middle' fill='%230b0e14'>jm</text></svg>"
+    />
+
+    <script>
+      // Apply the saved (or system) theme before first paint to avoid a flash.
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem('theme') ??
+          (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      } catch {}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    />
+    <link rel="stylesheet" href="dist/styles.css" />
+
+    <script src="src/data.js" defer></script>
+    <script src="src/main.js" defer></script>
+  </head>
+
+  <body class="min-h-screen">
+    <header class="flex h-[60px] items-center justify-between border-b border-line bg-surface px-4 sm:px-6">
+      <a id="brand" href="#" class="flex items-center gap-3 font-mono text-sm"></a>
+      <button
+        id="theme-toggle"
+        type="button"
+        class="h-7 cursor-pointer rounded-md border border-line px-3 text-[13px] font-medium transition-colors hover:bg-surface-hover"
+      >
+        Light mode
+      </button>
+    </header>
+
+    <div class="mx-auto flex max-w-[1144px] flex-col gap-8 px-4 pt-8 pb-16 sm:px-6 md:flex-row">
+      <aside id="sidebar" class="md:w-[280px] md:shrink-0"></aside>
+
+      <main class="min-w-0 flex-1 space-y-6">
+        <section id="readme" class="overflow-hidden rounded-md border border-line"></section>
+
+        <section aria-labelledby="projects-heading">
+          <div class="mb-2 flex items-center justify-between gap-4">
+            <h2 id="projects-heading" class="text-base">Projects</h2>
+            <div id="projects-nav" class="flex items-center gap-2">
+              <span id="projects-page" class="mr-1 font-mono text-xs text-fg-muted" aria-live="polite"></span>
+              <button
+                id="projects-prev"
+                type="button"
+                aria-label="Previous projects"
+                class="grid size-7 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+              <button
+                id="projects-next"
+                type="button"
+                aria-label="Next projects"
+                class="grid size-7 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="overflow-hidden">
+            <div id="projects" class="flex gap-4 transition-transform duration-300 ease-out motion-reduce:transition-none"></div>
+          </div>
+        </section>
+
+        <section aria-labelledby="skills-heading">
+          <h2 id="skills-heading" class="mb-2 text-base">Skills</h2>
+          <dl id="skills" class="space-y-3.5 rounded-md border border-line p-5"></dl>
+        </section>
+
+        <section aria-labelledby="experience-heading">
+          <h2 id="experience-heading" class="mb-2 text-base">Experience</h2>
+          <div id="experience" class="divide-y divide-line rounded-md border border-line"></div>
+        </section>
+
+        <section class="rounded-md border border-line px-5 pt-5 pb-4">
+          <h2 id="contrib-title" class="text-base">Loading contributions…</h2>
+          <div id="contrib-scroller" class="mt-3 overflow-x-auto pb-1">
+            <div id="contrib-graph" class="grid w-max auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"></div>
+          </div>
+          <div id="contrib-legend" class="mt-2 flex items-center justify-end gap-1 text-xs text-fg-muted"></div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
