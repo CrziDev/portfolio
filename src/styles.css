@@ -5,8 +5,8 @@
  * overrides the same variables, so markup never needs `dark:` variants.
  */
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
 
   --color-canvas: #0b0e14;
   --color-surface: #12171e;
@@ -18,6 +18,14 @@
   --color-accent: #4c90de;
   --color-chip: #1b2736;
   --color-success: #219038;
+  --color-danger: #f85149;
+  --color-tab-active: #f78166;
+
+  /* GitHub linguist colors; the same in both themes. */
+  --color-lang-php: #4f5d95;
+  --color-lang-go: #00add8;
+  --color-lang-python: #3572a5;
+  --color-lang-javascript: #f1e05a;
 
   --color-contrib-0: #12171e;
   --color-contrib-1: #0c3b23;
@@ -44,6 +52,8 @@
     --color-accent: #0969da;
     --color-chip: #ddf4ff;
     --color-success: #1a7f37;
+    --color-danger: #d1242f;
+    --color-tab-active: #fd8c73;
 
     --color-contrib-0: #eff2f5;
     --color-contrib-1: #aceebb;
@@ -52,7 +62,17 @@
     --color-contrib-4: #116329;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
   body {
     @apply bg-canvas font-sans text-fg antialiased;
+  }
+
+  dialog::backdrop {
+    background: rgb(1 4 9 / 0.6);
   }
 }

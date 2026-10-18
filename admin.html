@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in · John Michael Bughao</title>
+    <meta name="robots" content="noindex" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23c8ced3'/><text x='16' y='21' font-family='monospace' font-size='15' text-anchor='middle' fill='%230b0e14'>jm</text></svg>"
+    />
+
+    <script>
+      // Apply the saved (or system) theme before first paint to avoid a flash.
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem('theme') ??
+          (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      } catch {}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    />
+    <link rel="stylesheet" href="/dist/styles.css" />
+    <script src="/src/config.js"></script>
+  </head>
+
+  <!-- Only signs in: the token it saves turns on the pencil buttons on the portfolio itself. -->
+  <body class="flex min-h-screen flex-col">
+    <header class="flex h-[60px] items-center border-b border-line bg-surface px-4 sm:px-6">
+      <a href="/" class="flex items-center gap-3 font-mono text-sm">
+        <span id="initials" class="grid size-7 place-items-center rounded-md bg-fg font-medium text-canvas">jm</span>
+        <span id="handle" class="text-fg-muted">CrziDev</span>
+        <span class="text-line-strong">/</span>
+        <span class="font-medium">admin</span>
+      </a>
+    </header>
+
+    <main class="mx-auto flex w-full max-w-[340px] flex-1 flex-col justify-center px-4 py-16">
+      <h1 class="text-center text-2xl font-light">Sign in to edit</h1>
+
+      <p id="error" role="alert" hidden class="mt-4 rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"></p>
+
+      <form id="login" class="mt-4 rounded-md border border-line bg-surface p-4">
+        <label for="password" class="text-sm font-medium">Password</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          required
+          autofocus
+          class="mt-2 block h-8 w-full rounded-md border border-line bg-canvas px-3 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+        />
+        <button
+          id="submit"
+          type="submit"
+          class="mt-4 h-8 w-full cursor-pointer rounded-md bg-success text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-50"
+        >
+          Sign in
+        </button>
+      </form>
+
+      <a href="/" class="mt-4 text-center text-sm text-accent hover:underline">Back to portfolio</a>
+    </main>
+
+    <script>
+      const form = document.getElementById('login');
+      const input = document.getElementById('password');
+      const button = document.getElementById('submit');
+      const errorLine = document.getElementById('error');
+
+      const showError = (message) => {
+        errorLine.textContent = message;
+        errorLine.hidden = !message;
+      };
+
+      let savedToken = null;
+      try {
+        savedToken = localStorage.getItem(TOKEN_KEY);
+      } catch {}
+
+      // Already signed in: straight to the portfolio, in edit mode.
+      if (savedToken) {
+        fetch(`${API_URL}/api/session`, { headers: { Authorization: `Bearer ${savedToken}` } })
+          .then((response) => response.json())
+          .then(({ admin }) => admin && location.replace('/'))
+          .catch(() => {});
+      }
+
+      fetch(`${API_URL}/api/portfolio`)
+        .then((response) => response.json())
+        .then(({ profile }) => {
+          document.getElementById('initials').textContent = profile.initials;
+          document.getElementById('handle').textContent = profile.handle;
+        })
+        .catch(() => {});
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        button.disabled = true;
+        showError('');
+
+        let response;
+        try {
+          response = await fetch(`${API_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: input.value }),
+          });
+        } catch {
+          showError("Couldn't reach the API. Check that it's running.");
+          button.disabled = false;
+          return;
+        }
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          showError(response.status === 401 ? 'Wrong password.' : (data.error ?? `Sign-in failed (HTTP ${response.status}).`));
+          button.disabled = false;
+          input.select();
+          return;
+        }
+
+        try {
+          localStorage.setItem(TOKEN_KEY, data.token);
+        } catch {
+          showError('This browser blocks site storage, so it cannot stay signed in.');
+          button.disabled = false;
+          return;
+        }
+        location.replace('/');
+      });
+    </script>
+  </body>
+</html>

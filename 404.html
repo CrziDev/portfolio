@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page not found · John Michael Bughao</title>
+    <meta name="robots" content="noindex" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23c8ced3'/><text x='16' y='21' font-family='monospace' font-size='15' text-anchor='middle' fill='%230b0e14'>jm</text></svg>"
+    />
+
+    <script>
+      // Apply the saved (or system) theme before first paint to avoid a flash.
+      try {
+        document.documentElement.dataset.theme =
+          localStorage.getItem('theme') ??
+          (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      } catch {}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    />
+    <!-- Root-absolute paths, because Cloudflare Pages serves this page at whatever URL was missing. -->
+    <link rel="stylesheet" href="/dist/styles.css" />
+    <script src="/src/config.js"></script>
+  </head>
+
+  <body class="flex min-h-screen flex-col">
+    <header class="flex h-[60px] items-center border-b border-line bg-surface px-4 sm:px-6">
+      <a href="/" class="flex items-center gap-3 font-mono text-sm">
+        <span id="initials" class="grid size-7 place-items-center rounded-md bg-fg font-medium text-canvas">jm</span>
+        <span id="handle" class="text-fg-muted">CrziDev</span>
+        <span class="text-line-strong">/</span>
+        <span class="font-medium">portfolio</span>
+      </a>
+    </header>
+
+    <main class="mx-auto flex w-full max-w-[640px] flex-1 flex-col justify-center px-4 py-16 sm:px-6">
+      <p class="font-mono text-7xl font-medium text-line-strong">404</p>
+      <h1 class="mt-4 text-2xl font-semibold">This is not the web page you are looking for.</h1>
+      <pre class="mt-6 overflow-x-auto rounded-md border border-line bg-surface p-4 font-mono text-[13px] leading-6"><span class="text-fg-muted">$</span> git checkout <span data-path></span>
+<span class="text-danger">error:</span> pathspec '<span data-path></span>' did not match any file(s) known to git</pre>
+      <a
+        href="/"
+        class="mt-6 flex h-8 w-fit items-center rounded-md border border-line bg-surface px-4 text-sm font-medium transition-colors hover:bg-surface-hover"
+      >
+        Back to portfolio
+      </a>
+    </main>
+
+    <script>
+      // textContent, so a crafted URL can't inject markup.
+      let path = location.pathname;
+      try {
+        path = decodeURI(path);
+      } catch {}
+      document.querySelectorAll('[data-path]').forEach((el) => (el.textContent = path));
+
+      // The markup's initials and handle stay if the API can't be reached.
+      fetch(`${API_URL}/api/portfolio`)
+        .then((response) => response.json())
+        .then(({ profile }) => {
+          document.getElementById('initials').textContent = profile.initials;
+          document.getElementById('handle').textContent = profile.handle;
+        })
+        .catch(() => {});
+    </script>
+  </body>
+</html>

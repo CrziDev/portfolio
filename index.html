@@ -30,72 +30,102 @@
     />
     <link rel="stylesheet" href="dist/styles.css" />
 
-    <script src="src/data.js" defer></script>
+    <script src="src/config.js" defer></script>
     <script src="src/main.js" defer></script>
   </head>
 
   <body class="min-h-screen">
-    <header class="flex h-[60px] items-center justify-between border-b border-line bg-surface px-4 sm:px-6">
-      <a id="brand" href="#" class="flex items-center gap-3 font-mono text-sm"></a>
-      <button
-        id="theme-toggle"
-        type="button"
-        class="h-7 cursor-pointer rounded-md border border-line px-3 text-[13px] font-medium transition-colors hover:bg-surface-hover"
-      >
-        Light mode
-      </button>
-    </header>
+    <!--
+      Tabs line up with the main column on wide screens: sidebar 280px + gap 2rem + gutter 1.5rem.
+      The theme toggle sits at the end, flush with the README card's right edge, after "Sign out" in edit mode.
+    -->
+    <nav id="section-nav" aria-label="Sections" class="sticky top-0 z-20 border-b border-line bg-canvas">
+      <div class="mx-auto flex max-w-[1144px] items-center gap-4 px-4 sm:px-6 md:pl-[336px]">
+        <div id="tabs" class="flex min-w-0 flex-1 gap-2 overflow-x-auto"></div>
+        <button
+          id="sign-out"
+          type="button"
+          hidden
+          class="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-line px-2.5 text-xs font-medium text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true">
+            <path d="m16 17 5-5-5-5M21 12H9M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          </svg>
+          Sign out
+        </button>
+        <button
+          id="theme-toggle"
+          type="button"
+          aria-label="Switch theme"
+          class="grid size-8 shrink-0 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg"
+        ></button>
+      </div>
+    </nav>
 
     <div class="mx-auto flex max-w-[1144px] flex-col gap-8 px-4 pt-8 pb-16 sm:px-6 md:flex-row">
       <aside id="sidebar" class="md:w-[280px] md:shrink-0"></aside>
 
       <main class="min-w-0 flex-1 space-y-6">
-        <section id="readme" class="overflow-hidden rounded-md border border-line"></section>
+        <section id="readme" class="scroll-mt-16 overflow-hidden rounded-md border border-line">
+          <p class="p-5 text-sm text-fg-muted sm:px-8 sm:py-6">Loading…</p>
+        </section>
 
-        <section aria-labelledby="projects-heading">
+        <section id="projects" aria-labelledby="projects-heading" class="scroll-mt-16">
           <div class="mb-2 flex items-center justify-between gap-4">
             <h2 id="projects-heading" class="text-base">Projects</h2>
-            <div id="projects-nav" class="flex items-center gap-2">
-              <span id="projects-page" class="mr-1 font-mono text-xs text-fg-muted" aria-live="polite"></span>
-              <button
-                id="projects-prev"
-                type="button"
-                aria-label="Previous projects"
-                class="grid size-7 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-              <button
-                id="projects-next"
-                type="button"
-                aria-label="Next projects"
-                class="grid size-7 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
+            <div class="flex items-center gap-3">
+              <div id="projects-add"></div>
+              <div id="projects-nav" class="flex items-center gap-2">
+                <span id="projects-page" class="mr-1 font-mono text-xs text-fg-muted" aria-live="polite"></span>
+                <button
+                  id="projects-prev"
+                  type="button"
+                  aria-label="Previous projects"
+                  class="grid size-7 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+                <button
+                  id="projects-next"
+                  type="button"
+                  aria-label="Next projects"
+                  class="grid size-7 cursor-pointer place-items-center rounded-md border border-line text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
           <div class="overflow-hidden">
-            <div id="projects" class="flex gap-4 transition-transform duration-300 ease-out motion-reduce:transition-none"></div>
+            <div id="projects-track" class="flex gap-4 transition-transform duration-300 ease-out motion-reduce:transition-none"></div>
           </div>
         </section>
 
-        <section aria-labelledby="skills-heading">
-          <h2 id="skills-heading" class="mb-2 text-base">Skills</h2>
-          <dl id="skills" class="space-y-3.5 rounded-md border border-line p-5"></dl>
+        <section id="skills" aria-labelledby="skills-heading" class="scroll-mt-16">
+          <div class="mb-2 flex items-center justify-between gap-4">
+            <h2 id="skills-heading" class="text-base">Skills</h2>
+            <div id="skills-add"></div>
+          </div>
+          <dl id="skills-list" class="space-y-3.5 rounded-md border border-line p-5"></dl>
         </section>
 
-        <section aria-labelledby="experience-heading">
-          <h2 id="experience-heading" class="mb-2 text-base">Experience</h2>
-          <div id="experience" class="divide-y divide-line rounded-md border border-line"></div>
+        <section id="experience" aria-labelledby="experience-heading" class="scroll-mt-16">
+          <div class="mb-2 flex items-center justify-between gap-4">
+            <h2 id="experience-heading" class="text-base">Experience</h2>
+            <div id="experience-add"></div>
+          </div>
+          <div id="experience-list" class="space-y-4"></div>
         </section>
 
-        <section class="rounded-md border border-line px-5 pt-5 pb-4">
-          <h2 id="contrib-title" class="text-base">Loading contributions…</h2>
+        <section id="activity" aria-labelledby="contrib-title" class="scroll-mt-16 rounded-md border border-line px-5 pt-5 pb-4">
+          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <h2 id="contrib-title" class="text-base">Loading contributions…</h2>
+            <div id="contrib-years" role="group" aria-label="Contribution year" class="flex flex-wrap gap-1"></div>
+          </div>
           <div id="contrib-scroller" class="mt-3 overflow-x-auto pb-1">
             <div id="contrib-graph" class="grid w-max auto-cols-[10px] grid-flow-col grid-rows-7 gap-1"></div>
           </div>
@@ -103,5 +133,89 @@
         </section>
       </main>
     </div>
+
+    <footer id="footer" class="border-t border-line"></footer>
+
+    <div id="tooltip" role="tooltip" hidden class="pointer-events-none fixed z-50 max-w-60 rounded-md bg-fg px-2 py-1 text-xs text-canvas"></div>
+
+    <dialog
+      id="palette"
+      aria-label="Search or jump to"
+      class="mx-auto mt-[12vh] w-[min(40rem,calc(100%-2rem))] max-w-none overflow-hidden rounded-xl border border-line bg-surface p-0 text-fg shadow-2xl"
+    >
+      <div class="flex items-center gap-2 border-b border-line px-4">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-fg-muted" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input
+          id="palette-input"
+          type="text"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="palette-list"
+          aria-autocomplete="list"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Search or jump to…"
+          class="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-fg-muted"
+        />
+        <kbd class="rounded border border-line px-1.5 font-mono text-xs text-fg-muted">esc</kbd>
+      </div>
+      <ul id="palette-list" role="listbox" aria-label="Results" class="max-h-[min(24rem,60vh)] overflow-y-auto p-2"></ul>
+      <div class="flex gap-4 border-t border-line px-4 py-2 font-mono text-xs text-fg-muted" aria-hidden="true">
+        <span>↑↓ navigate</span>
+        <span>↵ select</span>
+        <span>esc close</span>
+      </div>
+    </dialog>
+
+    <!-- Edit mode: one form for whatever a pencil points at, filled in by main.js. -->
+    <dialog
+      id="editor"
+      aria-labelledby="editor-title"
+      class="mx-auto mt-[6vh] w-[min(36rem,calc(100%-2rem))] max-w-none overflow-hidden rounded-xl border border-line bg-surface p-0 text-fg shadow-2xl"
+    >
+      <form id="editor-form" class="flex max-h-[88vh] flex-col">
+        <div class="flex items-center justify-between gap-4 border-b border-line px-4 py-3">
+          <h2 id="editor-title" class="font-semibold"></h2>
+          <button
+            type="button"
+            data-close
+            aria-label="Close"
+            class="grid size-7 cursor-pointer place-items-center rounded-md text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div id="editor-fields" class="space-y-4 overflow-y-auto p-4"></div>
+        <p id="editor-error" role="alert" hidden class="mx-4 mb-4 rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger"></p>
+        <div class="flex items-center gap-2 border-t border-line px-4 py-3">
+          <button
+            id="editor-delete"
+            type="button"
+            class="h-8 cursor-pointer rounded-md border border-line px-3 text-sm font-medium text-danger transition-colors hover:border-danger hover:bg-danger hover:text-white disabled:cursor-default disabled:opacity-50"
+          >
+            Delete
+          </button>
+          <button
+            type="button"
+            data-close
+            class="ml-auto h-8 cursor-pointer rounded-md border border-line px-3 text-sm font-medium transition-colors hover:bg-surface-hover"
+          >
+            Cancel
+          </button>
+          <button
+            id="editor-save"
+            type="submit"
+            class="h-8 cursor-pointer rounded-md bg-success px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-50"
+          >
+            Save
+          </button>
+        </div>
+      </form>
+    </dialog>
   </body>
 </html>
