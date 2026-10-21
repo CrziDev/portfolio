@@ -20,6 +20,7 @@
   --color-success: #219038;
   --color-danger: #f85149;
   --color-tab-active: #f78166;
+  --color-star: #e3b341;
 
   /* GitHub linguist colors; the same in both themes. */
   --color-lang-php: #4f5d95;
@@ -54,6 +55,7 @@
     --color-success: #1a7f37;
     --color-danger: #d1242f;
     --color-tab-active: #fd8c73;
+    --color-star: #bf8700;
 
     --color-contrib-0: #eff2f5;
     --color-contrib-1: #aceebb;

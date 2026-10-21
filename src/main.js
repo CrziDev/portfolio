@@ -26,7 +26,6 @@
 
   // Page sections in page order, shared by the tabs and the command palette.
   const SECTIONS = [
-    { id: 'readme', label: 'Overview' },
     { id: 'projects', label: 'Projects', count: () => projects.length },
     { id: 'skills', label: 'Skills' },
     { id: 'experience', label: 'Experience', count: () => experience.length },
@@ -54,11 +53,22 @@
     pencil: '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" />',
     plus: '<path d="M5 12h14M12 5v14" />',
     logOut: '<path d="m16 17 5-5-5-5M21 12H9M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />',
+    mapPin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" />',
+    phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />',
+    mail: '<rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />',
+    github: '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" />',
+    star: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />',
+    linkedin: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" />',
   };
 
   function icon(paths, className = 'size-4') {
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
       stroke-linejoin="round" class="${className}" aria-hidden="true">${paths}</svg>`;
+  }
+
+  // A sidebar contact line: a muted icon followed by its content, like GitHub's profile sidebar.
+  function contactRow(paths, content) {
+    return `<li class="flex items-center gap-2">${icon(paths, 'size-4 shrink-0 text-fg-muted')}${content}</li>`;
   }
 
   // Uploaded images are stored as /uploads/… paths on the API.
@@ -178,34 +188,6 @@
       ${body}
     </div>`;
 
-  // Share of projects per language. Labelled as such, since it isn't a share of code like GitHub's.
-  function languageBar() {
-    const counted = projects.filter(({ language }) => language);
-    const counts = {};
-    counted.forEach(({ language }) => (counts[language] = (counts[language] ?? 0) + 1));
-    const shares = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([language, count]) => [language, ((count / counted.length) * 100).toFixed(1)]);
-
-    return `
-      <div class="mt-3 flex h-2 gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
-        ${shares.map(([language, share]) => `<span class="${languageDot(language)}" style="width: ${share}%"></span>`).join('')}
-      </div>
-      <ul class="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-        ${shares
-          .map(
-            ([language, share]) => `
-              <li class="flex items-center gap-1.5">
-                <span class="size-2 rounded-full ${languageDot(language)}" aria-hidden="true"></span>
-                <span class="font-semibold">${escapeHtml(language)}</span>
-                <span class="text-fg-muted">${share}%</span>
-              </li>`,
-          )
-          .join('')}
-      </ul>
-      <p class="mt-1.5 text-xs text-fg-muted">Across ${counted.length} projects</p>`;
-  }
-
   function renderSidebar() {
     const { email, github, linkedin } = profile;
 
@@ -217,6 +199,7 @@
         ${editButton('profile', null, 'Edit profile')}
       </div>
       <p class="font-mono leading-5 text-fg-muted">${escapeHtml(profile.handle)}</p>
+      ${profile.tagline ? `<p class="mt-3 text-sm">${escapeHtml(profile.tagline)}</p>` : ''}
 
       ${link(
         `mailto:${email}`,
@@ -230,20 +213,22 @@
       </p>
 
       <ul class="mt-2.5 text-sm leading-6">
-        <li>${escapeHtml(profile.location)}</li>
-        <li class="text-fg-muted">${escapeHtml(profile.phone)}</li>
-        <li class="flex items-center gap-1">
-          ${link(`mailto:${email}`, email, 'truncate text-accent hover:underline')}
-          <button id="copy-email" type="button" aria-label="Copy email" data-tip="Copy email"
-            class="grid size-6 shrink-0 cursor-pointer place-items-center rounded-md text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg">
-            ${icon(ICONS.copy, 'size-3.5')}
-          </button>
-        </li>
-        <li>${link(githubUrl(), `github.com/${github}`)}</li>
-        <li>${link(linkedinUrl(), `linkedin.com/in/${linkedin}`)}</li>
+        ${contactRow(ICONS.mapPin, escapeHtml(profile.location))}
+        ${contactRow(ICONS.phone, `<span class="text-fg-muted">${escapeHtml(profile.phone)}</span>`)}
+        ${contactRow(
+          ICONS.mail,
+          `<span class="flex min-w-0 items-center gap-1">
+            ${link(`mailto:${email}`, email, 'truncate text-accent hover:underline')}
+            <button id="copy-email" type="button" aria-label="Copy email" data-tip="Copy email"
+              class="grid size-6 shrink-0 cursor-pointer place-items-center rounded-md text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg">
+              ${icon(ICONS.copy, 'size-3.5')}
+            </button>
+          </span>`,
+        )}
+        ${contactRow(ICONS.github, link(githubUrl(), `github.com/${github}`, 'truncate text-accent hover:underline'))}
+        ${contactRow(ICONS.linkedin, link(linkedinUrl(), `linkedin.com/in/${linkedin}`, 'truncate text-accent hover:underline'))}
       </ul>
 
-      ${sidebarBlock('Languages', languageBar())}
       ${sidebarBlock(
         'Education',
         `<p class="mt-1.5 text-sm font-medium">${escapeHtml(education.degree)}</p>
@@ -267,18 +252,6 @@
 
   // ---- Main column ----
 
-  function renderReadme() {
-    $('#readme').innerHTML = `
-      <div class="flex items-center justify-between gap-2 border-b border-line bg-surface px-4 py-3">
-        <span class="font-mono text-[13px] leading-5 text-fg-muted">${escapeHtml(profile.handle)} / README.md</span>
-        ${editButton('readme', null, 'Edit README')}
-      </div>
-      <div class="p-5 sm:px-8 sm:py-6">
-        <h2 class="border-b border-line pb-1.5 text-2xl font-semibold">${escapeHtml(profile.greeting)}</h2>
-        <p class="mt-4">${escapeHtml(profile.tagline)}</p>
-      </div>`;
-  }
-
   function renderSkills() {
     const chips = (items) =>
       items
@@ -301,19 +274,32 @@
 
   function projectCard(project) {
     const stack = project.stack.filter((item) => item !== project.language);
+    // The repo link as a GitHub icon; grayed out when the project has no link yet.
+    const repoClass = 'ml-auto -my-1 grid size-6 shrink-0 place-items-center rounded-md text-fg-muted';
+    const repo = project.url
+      ? `<a href="${escapeHtml(project.url)}" target="_blank" rel="noopener" aria-label="${escapeHtml(project.name)} on GitHub"
+          data-tip="View on GitHub" class="${repoClass} transition-colors hover:bg-surface-hover hover:text-fg">${icon(ICONS.github)}</a>`
+      : `<span role="img" aria-label="No GitHub link" data-tip="No link yet" class="${repoClass} opacity-40">${icon(ICONS.github)}</span>`;
     return `
       <article class="flex flex-col rounded-md border border-line p-3">
-        ${imageSlot(project.image, `${project.name} screenshot`, 'aspect-[3/2] w-full rounded-md')}
+        <div class="relative">
+          ${imageSlot(project.image, `${project.name} screenshot`, 'aspect-[3/2] w-full rounded-md')}
+          <button type="button" data-star="${project.id}" aria-pressed="${starState.starred.has(project.id)}"
+            class="absolute top-2 right-2 flex h-7 cursor-pointer items-center gap-1 rounded-md border border-line bg-canvas/90 px-2 text-xs text-fg-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-surface-hover hover:text-fg">
+            ${starContent(project)}
+          </button>
+        </div>
         <div class="mt-3 flex items-center gap-2">
           ${icon(ICONS.book, 'size-4 shrink-0 text-fg-muted')}
           <h3 class="truncate text-sm font-semibold text-accent">
             ${project.url ? link(project.url, project.name, 'hover:underline') : escapeHtml(project.name)}
           </h3>
           ${project.type ? `<span class="shrink-0 rounded-full border border-line px-2 text-xs leading-[18px] text-fg-muted">${escapeHtml(project.type)}</span>` : ''}
-          ${editButton('project', project.id, `Edit ${project.name}`, 'ml-auto -my-1 size-6')}
+          ${repo}
+          ${editButton('project', project.id, `Edit ${project.name}`, '-my-1 size-6')}
         </div>
         <p class="mt-2 text-xs leading-snug text-fg-muted">${escapeHtml(project.description)}</p>
-        <p class="mt-auto flex items-center gap-1.5 pt-3 text-xs text-fg-muted">
+        <div class="mt-auto flex items-center gap-1.5 pt-3 text-xs text-fg-muted">
           ${
             project.language
               ? `<span class="size-3 shrink-0 rounded-full ${languageDot(project.language)}" aria-hidden="true"></span>
@@ -321,20 +307,77 @@
               : ''
           }
           <span class="truncate font-mono">${escapeHtml(stack.join(' · '))}</span>
-        </p>
+        </div>
       </article>`;
   }
 
-  // Projects show two rows at a time; the arrows slide between pages.
-  // Column counts mirror the page grid's sm:grid-cols-2 lg:grid-cols-3.
+  // ---- Stars: like GitHub's, any visitor can star a project once ----
+
+  const STARS_KEY = 'portfolio-stars';
+
+  // This browser's random visitor ID, which the API counts once per project, and the projects it starred.
+  const starState = loadStars();
+  const starsInFlight = new Set();
+
+  function loadStars() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STARS_KEY));
+      if (saved?.visitor) return { visitor: saved.visitor, starred: new Set(saved.starred) };
+    } catch {}
+    return { visitor: crypto.randomUUID(), starred: new Set() };
+  }
+
+  function saveStars() {
+    try {
+      localStorage.setItem(STARS_KEY, JSON.stringify({ visitor: starState.visitor, starred: [...starState.starred] }));
+    } catch {}
+  }
+
+  function starContent(project) {
+    const starred = starState.starred.has(project.id);
+    return `
+      ${icon(ICONS.star, starred ? 'size-3.5 fill-current text-star' : 'size-3.5')}
+      <span class="sr-only">Star ${escapeHtml(project.name)}:</span>
+      <span class="tabular-nums">${project.stars ?? 0}</span>`;
+  }
+
+  // Shows the change right away, then undoes it if the API refuses.
+  async function toggleStar(id) {
+    const project = projects.find((p) => p.id === id);
+    if (!project || starsInFlight.has(id)) return;
+    const starred = !starState.starred.has(id);
+
+    const show = (on, count) => {
+      on ? starState.starred.add(id) : starState.starred.delete(id);
+      project.stars = count;
+      saveStars();
+      document.querySelectorAll(`[data-star="${id}"]`).forEach((button) => {
+        button.setAttribute('aria-pressed', on);
+        button.innerHTML = starContent(project);
+      });
+    };
+
+    const before = project.stars ?? 0;
+    show(starred, Math.max(0, before + (starred ? 1 : -1)));
+    starsInFlight.add(id);
+    try {
+      const result = await api(`/api/projects/${id}/star`, { method: 'POST', body: { visitor: starState.visitor, starred } });
+      show(starred, result.stars);
+    } catch {
+      show(!starred, before);
+    } finally {
+      starsInFlight.delete(id);
+    }
+  }
+
+  // Projects show three rows at a time; the arrows (above and below the cards) slide between pages.
+  // Column counts mirror the page grid's sm:grid-cols-2.
   // Returns `layout`, to re-render the cards, and `reveal`, which slides to the page holding a given project.
   function initProjects() {
-    const ROWS = 2;
-    const lg = matchMedia('(min-width: 64rem)');
+    const ROWS = 3;
     const sm = matchMedia('(min-width: 40rem)');
     const track = $('#projects-track');
-    const prev = $('#projects-prev');
-    const next = $('#projects-next');
+    const all = (selector) => [...document.querySelectorAll(selector)];
 
     let page = 0;
     let perPage = 0;
@@ -345,31 +388,41 @@
       // Each page is 100% of the track wide, plus the track's 1rem (gap-4) gap.
       track.style.transform = `translateX(calc(${page} * (-100% - 1rem)))`;
       [...track.children].forEach((el, i) => (el.inert = i !== page));
-      $('#projects-page').textContent = `${page + 1} / ${pageCount}`;
-      prev.disabled = page === 0;
-      next.disabled = page === pageCount - 1;
+      all('[data-projects-page]').forEach((el) => (el.textContent = `${page + 1} / ${pageCount}`));
+      all('[data-projects-prev]').forEach((button) => (button.disabled = page === 0));
+      all('[data-projects-next]').forEach((button) => (button.disabled = page === pageCount - 1));
     }
 
     function layout() {
       const firstVisible = page * perPage;
-      perPage = (lg.matches ? 3 : sm.matches ? 2 : 1) * ROWS;
+      perPage = (sm.matches ? 2 : 1) * ROWS;
       pageCount = Math.max(1, Math.ceil(projects.length / perPage));
 
       track.innerHTML = Array.from(
         { length: pageCount },
         (_, i) => `
-          <div class="grid w-full shrink-0 content-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="grid w-full shrink-0 content-start gap-4 sm:grid-cols-2">
             ${projects.slice(i * perPage, (i + 1) * perPage).map(projectCard).join('')}
           </div>`,
       ).join('');
 
-      $('#projects-nav').hidden = pageCount <= 1;
+      all('[data-projects-nav]').forEach((nav) => (nav.hidden = pageCount <= 1));
       show(Math.floor(firstVisible / perPage)); // keep the same projects in view after a resize
     }
 
-    prev.addEventListener('click', () => show(page - 1));
-    next.addEventListener('click', () => show(page + 1));
-    lg.addEventListener('change', layout);
+    // The bottom arrows also bring the top of the new page into view.
+    for (const nav of all('[data-projects-nav]')) {
+      const go = (step) => {
+        show(page + step);
+        if ('scroll' in nav.dataset) $('#projects').scrollIntoView({ block: 'start' });
+      };
+      nav.querySelector('[data-projects-prev]').addEventListener('click', () => go(-1));
+      nav.querySelector('[data-projects-next]').addEventListener('click', () => go(1));
+    }
+    track.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-star]');
+      if (button) toggleStar(Number(button.dataset.star));
+    });
     sm.addEventListener('change', layout);
 
     return { layout, reveal: (index) => show(Math.floor(index / perPage)) };
@@ -765,12 +818,12 @@
   }
 
   function renderLoadError() {
-    $('#readme').innerHTML = `
+    $('#status').innerHTML = `
       <div class="p-5 sm:px-8 sm:py-6">
         <h2 class="text-base font-semibold">Couldn't load the portfolio</h2>
         <p class="mt-2 text-sm text-fg-muted">The content server didn't respond. Please try again in a moment.</p>
       </div>`;
-    document.querySelectorAll('main > section:not(#readme)').forEach((section) => (section.hidden = true));
+    document.querySelectorAll('main > section:not(#status)').forEach((section) => (section.hidden = true));
   }
 
   // ---- Edit mode: each pencil opens a form for one piece of content ----
@@ -837,6 +890,7 @@
         { name: 'photo', label: 'Photo', type: 'image' },
         { name: 'name', label: 'Name', required: true },
         { name: 'handle', label: 'Handle' },
+        { name: 'tagline', label: 'Description', type: 'textarea', rows: 4 },
         { name: 'initials', label: 'Initials', hint: 'Shown in the footer and on the 404 page' },
         { name: 'status', label: 'Status' },
         { name: 'location', label: 'Location' },
@@ -849,15 +903,6 @@
         { name: 'year', label: 'Graduation year' },
       ],
     },
-    readme: {
-      title: 'Edit README',
-      values: () => profile,
-      save: saveProfile,
-      fields: [
-        { name: 'greeting', label: 'Heading' },
-        { name: 'tagline', label: 'Text', type: 'textarea', rows: 4 },
-      ],
-    },
     project: {
       noun: 'project',
       path: '/api/projects',
@@ -867,7 +912,7 @@
         { name: 'image', label: 'Screenshot', type: 'image' },
         { name: 'name', label: 'Name', required: true },
         { name: 'type', label: 'Type', hint: 'For example Work, Freelance or Personal' },
-        { name: 'language', label: 'Main language', hint: 'Sets the colored dot and the Languages bar' },
+        { name: 'language', label: 'Main language', hint: 'Sets the colored dot' },
         { name: 'description', label: 'Description', type: 'textarea' },
         { name: 'stack', label: 'Stack', type: 'list', hint: 'Comma-separated' },
         { name: 'url', label: 'Link', type: 'url', placeholder: 'https://github.com/…' },
@@ -1066,7 +1111,6 @@
   function render() {
     renderTabs();
     renderSidebar();
-    renderReadme();
     renderSkills();
     projectView.layout();
     renderExperience();
@@ -1091,6 +1135,7 @@
 
   const projectView = initProjects();
   const updateScrollSpy = initScrollSpy();
+  $('#status').remove();
   render();
   renderContributions();
   initPalette(projectView.reveal);
