@@ -383,10 +383,15 @@
     let perPage = 0;
     let pageCount = 1;
 
+    // The window is only as tall as the page in view, so a short last page leaves no gap below it.
+    const fit = () => (track.parentElement.style.height = `${track.children[page]?.offsetHeight ?? 0}px`);
+    const resized = new ResizeObserver(fit);
+
     function show(index) {
       page = Math.min(Math.max(index, 0), pageCount - 1);
       // Each page is 100% of the track wide, plus the track's 1rem (gap-4) gap.
       track.style.transform = `translateX(calc(${page} * (-100% - 1rem)))`;
+      fit();
       [...track.children].forEach((el, i) => (el.inert = i !== page));
       all('[data-projects-page]').forEach((el) => (el.textContent = `${page + 1} / ${pageCount}`));
       all('[data-projects-prev]').forEach((button) => (button.disabled = page === 0));
@@ -405,6 +410,8 @@
             ${projects.slice(i * perPage, (i + 1) * perPage).map(projectCard).join('')}
           </div>`,
       ).join('');
+      resized.disconnect();
+      [...track.children].forEach((el) => resized.observe(el));
 
       all('[data-projects-nav]').forEach((nav) => (nav.hidden = pageCount <= 1));
       show(Math.floor(firstVisible / perPage)); // keep the same projects in view after a resize
