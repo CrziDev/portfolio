@@ -194,6 +194,79 @@
       </div>
     </dialog>
 
+    <!--
+      Project preview, opened from a project card: screenshots and write-up on the left, visitors' comments
+      on the right. Filled in by main.js. Below md it goes full screen and stacks into one scrolling column.
+    -->
+    <dialog
+      id="preview"
+      aria-labelledby="preview-title"
+      tabindex="-1"
+      class="m-0 h-full max-h-none w-full max-w-none flex-col overflow-y-auto bg-canvas p-0 text-fg outline-none open:flex md:m-auto md:h-[min(46rem,calc(100dvh-4rem))] md:w-[min(72rem,calc(100vw-2rem))] md:overflow-hidden md:rounded-xl md:border md:border-line md:shadow-2xl md:open:grid md:open:grid-cols-[minmax(0,1fr)_340px] md:open:grid-rows-[minmax(0,1fr)]"
+    >
+      <section class="flex min-w-0 flex-col md:overflow-y-auto">
+        <div id="preview-gallery"></div>
+        <div id="preview-details" class="flex flex-col gap-3 p-5"></div>
+      </section>
+
+      <aside
+        aria-labelledby="preview-comments-title"
+        class="relative flex min-w-0 flex-col border-line bg-surface max-md:border-t md:min-h-0 md:border-l"
+      >
+        <h3 id="preview-comments-title" class="sr-only">Comments</h3>
+        <button
+          type="button"
+          data-close
+          aria-label="Close preview"
+          class="fixed top-2.5 right-2.5 z-10 grid size-7.5 cursor-pointer place-items-center rounded-full border border-line bg-canvas text-fg-muted shadow-[0_2px_8px_var(--color-shadow)] transition-colors hover:bg-surface-hover hover:text-fg md:absolute"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+        <ol id="preview-comments" class="flex flex-1 flex-col gap-3.5 p-4 md:min-h-0 md:overflow-y-auto md:pt-13"></ol>
+        <form
+          id="preview-composer"
+          class="mx-3 mb-3 flex flex-col gap-1 rounded-2xl border border-line bg-canvas p-2 shadow-[0_6px_20px_var(--color-shadow)] focus-within:border-accent"
+        >
+          <input
+            id="comment-name"
+            name="name"
+            type="text"
+            maxlength="40"
+            autocomplete="name"
+            aria-label="Your name"
+            placeholder="Your name (optional)"
+            class="w-full bg-transparent px-2 py-1 text-xs font-semibold outline-none placeholder:font-normal placeholder:text-fg-muted"
+          />
+          <textarea
+            id="comment-body"
+            name="body"
+            maxlength="1000"
+            required
+            aria-label="Comment"
+            placeholder="Leave a comment…"
+            class="min-h-11 w-full resize-none bg-transparent px-2 py-1 text-[13px] leading-normal outline-none placeholder:text-fg-muted"
+          ></textarea>
+          <div class="flex items-center gap-2 pl-2">
+            <span id="comment-status" class="text-[11px] text-fg-muted" aria-live="polite"></span>
+            <button
+              id="comment-send"
+              type="submit"
+              aria-label="Post comment"
+              disabled
+              class="ml-auto grid size-8 shrink-0 cursor-pointer place-items-center rounded-full bg-accent text-white transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-40"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
+                <path d="m21.854 2.147-10.94 10.939" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </aside>
+    </dialog>
+
     <!-- Edit mode: one form for whatever a pencil points at, filled in by main.js. -->
     <dialog
       id="editor"

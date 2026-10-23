@@ -1,7 +1,7 @@
 /*
  * Renders the page from the portfolio API (API_URL, src/config.js), then wires
- * up the theme toggle, section tabs, tooltips, command palette and the GitHub
- * contribution graph. After signing in at /admin, pencil buttons edit the content.
+ * up the theme toggle, section tabs, tooltips, command palette, project previews
+ * and the GitHub contribution graph. After signing in at /admin, pencil buttons edit the content.
  */
 (async () => {
   'use strict';
@@ -14,6 +14,7 @@
   const CONTRIB_LEVELS = ['bg-contrib-0', 'bg-contrib-1', 'bg-contrib-2', 'bg-contrib-3', 'bg-contrib-4'];
   const LANGUAGE_DOTS = {
     PHP: 'bg-lang-php',
+    Laravel: 'bg-lang-laravel',
     Go: 'bg-lang-go',
     Python: 'bg-lang-python',
     JavaScript: 'bg-lang-javascript',
@@ -59,6 +60,9 @@
     github: '<path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" />',
     star: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />',
     linkedin: '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" />',
+    x: '<path d="M18 6 6 18M6 6l12 12" />',
+    chevronLeft: '<path d="m15 18-6-6 6-6" />',
+    chevronRight: '<path d="m9 18 6-6-6-6" />',
   };
 
   function icon(paths, className = 'size-4') {
@@ -273,7 +277,8 @@
   }
 
   function projectCard(project) {
-    const stack = project.stack.filter((item) => item !== project.language);
+    // Cards show only the first 3; the full list is in the project preview.
+    const stack = project.stack.filter((item) => item !== project.language).slice(0, 3);
     // The repo link as a GitHub icon; grayed out when the project has no link yet.
     const repoClass = 'ml-auto -my-1 grid size-6 shrink-0 place-items-center rounded-md text-fg-muted';
     const repo = project.url
@@ -281,7 +286,7 @@
           data-tip="View on GitHub" class="${repoClass} transition-colors hover:bg-surface-hover hover:text-fg">${icon(ICONS.github)}</a>`
       : `<span role="img" aria-label="No GitHub link" data-tip="No link yet" class="${repoClass} opacity-40">${icon(ICONS.github)}</span>`;
     return `
-      <article class="flex flex-col rounded-md border border-line p-3">
+      <article data-preview="${project.id}" class="flex cursor-pointer flex-col rounded-md border border-line p-3 transition-colors hover:border-line-strong">
         <div class="relative">
           ${imageSlot(project.image, `${project.name} screenshot`, 'aspect-[3/2] w-full rounded-md')}
           <button type="button" data-star="${project.id}" aria-pressed="${starState.starred.has(project.id)}"
@@ -292,7 +297,7 @@
         <div class="mt-3 flex items-center gap-2">
           ${icon(ICONS.book, 'size-4 shrink-0 text-fg-muted')}
           <h3 class="truncate text-sm font-semibold text-accent">
-            ${project.url ? link(project.url, project.name, 'hover:underline') : escapeHtml(project.name)}
+            <button type="button" class="cursor-pointer hover:underline">${escapeHtml(project.name)}</button>
           </h3>
           ${project.type ? `<span class="shrink-0 rounded-full border border-line px-2 text-xs leading-[18px] text-fg-muted">${escapeHtml(project.type)}</span>` : ''}
           ${repo}
@@ -333,11 +338,12 @@
     } catch {}
   }
 
-  function starContent(project) {
+  // `labelled` adds a visible "Star"/"Starred", as on the preview's button.
+  function starContent(project, labelled = false) {
     const starred = starState.starred.has(project.id);
     return `
       ${icon(ICONS.star, starred ? 'size-3.5 fill-current text-star' : 'size-3.5')}
-      <span class="sr-only">Star ${escapeHtml(project.name)}:</span>
+      <span class="${labelled ? '' : 'sr-only'}">${starred ? 'Starred' : 'Star'}<span class="sr-only"> ${escapeHtml(project.name)}:</span></span>
       <span class="tabular-nums">${project.stars ?? 0}</span>`;
   }
 
@@ -353,7 +359,7 @@
       saveStars();
       document.querySelectorAll(`[data-star="${id}"]`).forEach((button) => {
         button.setAttribute('aria-pressed', on);
-        button.innerHTML = starContent(project);
+        button.innerHTML = starContent(project, 'starLabel' in button.dataset);
       });
     };
 
@@ -373,7 +379,7 @@
   // Projects show three rows at a time; the arrows (above and below the cards) slide between pages.
   // Column counts mirror the page grid's sm:grid-cols-2.
   // Returns `layout`, to re-render the cards, and `reveal`, which slides to the page holding a given project.
-  function initProjects() {
+  function initProjects(openPreview) {
     const ROWS = 3;
     const sm = matchMedia('(min-width: 40rem)');
     const track = $('#projects-track');
@@ -428,11 +434,316 @@
     }
     track.addEventListener('click', (event) => {
       const button = event.target.closest('[data-star]');
-      if (button) toggleStar(Number(button.dataset.star));
+      if (button) return toggleStar(Number(button.dataset.star));
+      // Anywhere else on a card opens its preview, except the GitHub link and the edit pencil.
+      if (event.target.closest('a, [data-edit]')) return;
+      const card = event.target.closest('[data-preview]');
+      if (card) openPreview(Number(card.dataset.preview));
     });
     sm.addEventListener('change', layout);
 
     return { layout, reveal: (index) => show(Math.floor(index / perPage)) };
+  }
+
+  // ---- Project preview: screenshots, write-up and visitors' comments in one dialog ----
+
+  const COMMENTS_KEY = 'portfolio-comments';
+  const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  // The name this browser comments under, and the IDs of its comments, which show on the right like sent messages.
+  const commentState = loadCommentState();
+
+  function loadCommentState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(COMMENTS_KEY));
+      if (saved) return { name: saved.name ?? '', mine: new Set(saved.mine) };
+    } catch {}
+    return { name: '', mine: new Set() };
+  }
+
+  function saveCommentState() {
+    try {
+      localStorage.setItem(COMMENTS_KEY, JSON.stringify({ name: commentState.name, mine: [...commentState.mine] }));
+    } catch {}
+  }
+
+  // '5m ago' for recent comments, the date for anything older than a month.
+  function timeAgo(date) {
+    const seconds = (Date.now() - date) / 1000;
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 30 * 86400) return `${Math.floor(seconds / 86400)}d ago`;
+    return dateFormat.format(date);
+  }
+
+  const initials = (name) =>
+    name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join('');
+
+  // Returns `open`, which shows a project's preview by ID.
+  function initPreview() {
+    const dialog = $('#preview');
+    const gallery = $('#preview-gallery');
+    const details = $('#preview-details');
+    const list = $('#preview-comments');
+    const form = $('#preview-composer');
+    const nameInput = $('#comment-name');
+    const bodyInput = $('#comment-body');
+    const status = $('#comment-status');
+    const sendButton = $('#comment-send');
+    const HINT = 'Ctrl+Enter to send';
+
+    let project;
+    let images = [];
+    let current = 0;
+    let comments = [];
+    let commentsLoaded = 0; // bumped on every open, so a slow response for another project is dropped
+    let sending = false;
+
+    const navButton = (direction, label, side) => `
+      <button type="button" data-step="${direction}" aria-label="${label}"
+        class="absolute top-1/2 ${side} grid size-8 -translate-y-1/2 cursor-pointer place-items-center rounded-md border border-white/10 bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 max-md:opacity-100">
+        ${icon(direction < 0 ? ICONS.chevronLeft : ICONS.chevronRight)}
+      </button>`;
+
+    function renderGallery() {
+      if (!images.length) {
+        gallery.innerHTML = `<div class="border-b border-line">${imageSlot('', `${project.name} screenshot`, 'aspect-[16/10] w-full')}</div>`;
+        return;
+      }
+      const several = images.length > 1;
+      // The thumbnail strip takes the main image's height ([contain:size]) and scrolls, rather than stretching the row.
+      gallery.innerHTML = `
+        <div class="grid gap-0.5 border-b border-line bg-line ${several ? 'grid-cols-[96px_minmax(0,1fr)] max-sm:grid-cols-1' : ''}">
+          ${
+            several
+              ? `<div role="group" aria-label="Screenshots"
+                  class="flex flex-col gap-0.5 overflow-y-auto bg-canvas [contain:size] [scrollbar-width:none] max-sm:order-2 max-sm:flex-row max-sm:overflow-x-auto max-sm:[contain:none]">
+                  ${images
+                    .map(
+                      (src, i) => `
+                        <button type="button" data-thumb="${i}" aria-label="Show screenshot ${i + 1}"
+                          class="relative shrink-0 cursor-pointer bg-surface opacity-60 transition-opacity hover:opacity-100 aria-[current=true]:opacity-100 aria-[current=true]:after:absolute aria-[current=true]:after:inset-0 aria-[current=true]:after:shadow-[inset_0_0_0_2px_var(--color-accent)] max-sm:w-21">
+                          <img src="${escapeHtml(assetUrl(src))}" alt="" loading="lazy" class="block aspect-[16/10] w-full object-cover">
+                        </button>`,
+                    )
+                    .join('')}
+                </div>`
+              : ''
+          }
+          <div class="group relative aspect-[16/10] max-w-full overflow-hidden bg-surface">
+            <img data-main alt="" class="size-full object-contain">
+            ${
+              several
+                ? `<span data-count class="absolute bottom-2.5 left-2.5 rounded-md bg-black/60 px-2 py-0.5 font-mono text-xs text-white"></span>
+                   ${navButton(-1, 'Previous screenshot', 'left-2.5')}
+                   ${navButton(1, 'Next screenshot', 'right-2.5')}`
+                : ''
+            }
+          </div>
+        </div>`;
+      show(0);
+    }
+
+    function show(index) {
+      if (!images.length) return;
+      current = (index + images.length) % images.length;
+      const main = gallery.querySelector('[data-main]');
+      main.src = assetUrl(images[current]);
+      main.alt = `${project.name} screenshot ${current + 1} of ${images.length}`;
+      const count = gallery.querySelector('[data-count]');
+      if (count) count.textContent = `${current + 1} / ${images.length}`;
+      gallery.querySelectorAll('[data-thumb]').forEach((thumb, i) => {
+        thumb.setAttribute('aria-current', i === current);
+        if (i === current) thumb.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
+    }
+
+    function detailBlock(text) {
+      const lines = text.trim().split('\n').map((line) => line.trim());
+      if (!lines.every((line) => /^[-*] /.test(line))) {
+        return `<p class="max-w-[68ch] leading-relaxed">${escapeHtml(text.trim())}</p>`;
+      }
+      const items = lines.map((line) => `<li>${escapeHtml(line.slice(2))}</li>`).join('');
+      return `<ul class="max-w-[68ch] list-disc space-y-1 pl-5 leading-relaxed">${items}</ul>`;
+    }
+
+    function renderDetails() {
+      const button = 'flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-[13px] font-medium';
+      const repo = project.url
+        ? `<a href="${escapeHtml(project.url)}" target="_blank" rel="noopener" class="${button} transition-colors hover:bg-surface-hover">
+            ${icon(ICONS.github)} View on GitHub</a>`
+        : `<span class="${button} text-fg-muted opacity-50">${icon(ICONS.github)} No link yet</span>`;
+      const paragraphs = (project.details ?? '').split(/\n\s*\n/).filter((text) => text.trim());
+
+      details.innerHTML = `
+        <div class="flex flex-wrap items-center gap-2.5">
+          <h2 id="preview-title" class="text-xl font-semibold text-balance">${escapeHtml(project.name)}</h2>
+          ${project.type ? `<span class="shrink-0 rounded-full border border-line px-2 text-xs leading-[18px] text-fg-muted">${escapeHtml(project.type)}</span>` : ''}
+          ${editButton('project', project.id, `Edit ${project.name}`, 'size-7')}
+          <div class="ml-auto flex flex-wrap gap-2">
+            <button type="button" data-star="${project.id}" data-star-label aria-pressed="${starState.starred.has(project.id)}"
+              class="${button} cursor-pointer transition-colors hover:bg-surface-hover">
+              ${starContent(project, true)}
+            </button>
+            ${repo}
+          </div>
+        </div>
+        ${project.description ? `<p class="max-w-[68ch] leading-relaxed text-fg-muted">${escapeHtml(project.description)}</p>` : ''}
+        ${paragraphs.map(detailBlock).join('')}
+        ${
+          project.stack.length
+            ? `<ul class="flex flex-wrap gap-2">
+                ${project.stack.map((item) => `<li class="rounded-full bg-chip px-2.5 py-0.5 font-mono text-xs leading-4 text-accent">${escapeHtml(item)}</li>`).join('')}
+              </ul>`
+            : ''
+        }`;
+    }
+
+    function commentMarkup({ id, name, body, createdAt }) {
+      const mine = commentState.mine.has(id);
+      const date = new Date(createdAt);
+      const remove = admin
+        ? `<button type="button" data-delete-comment="${id}" aria-label="Delete comment" data-tip="Delete comment"
+            class="grid size-5 shrink-0 cursor-pointer place-items-center rounded text-fg-muted transition-colors hover:bg-surface-hover hover:text-danger">
+            ${icon(ICONS.x, 'size-3')}
+          </button>`
+        : '';
+      return `
+        <li data-comment="${id}" class="flex max-w-[92%] items-end gap-2 ${mine ? 'flex-row-reverse self-end' : ''}">
+          ${
+            mine
+              ? ''
+              : `<span aria-hidden="true" class="grid size-7 shrink-0 place-items-center rounded-full bg-chip font-mono text-[11px] font-medium lowercase text-accent">${escapeHtml(initials(name))}</span>`
+          }
+          <div class="flex min-w-0 flex-col gap-1">
+            <div class="flex items-center gap-1.5 px-1 ${mine ? 'justify-end' : ''}">
+              <strong class="truncate text-xs font-semibold">${mine ? 'You' : escapeHtml(name)}</strong>
+              <time datetime="${date.toISOString()}" title="${escapeHtml(date.toLocaleString())}" class="text-[11px] whitespace-nowrap text-fg-muted">${timeAgo(date)}</time>
+              ${remove}
+            </div>
+            <p class="rounded-2xl border px-3 py-2 text-[13px] leading-normal whitespace-pre-line [overflow-wrap:anywhere] shadow-[0_4px_14px_var(--color-shadow)] ${
+              mine ? 'rounded-br-sm border-transparent bg-own' : 'rounded-bl-sm border-line bg-canvas'
+            }">${escapeHtml(body)}</p>
+          </div>
+        </li>`;
+    }
+
+    const notice = (text) => `<li class="m-auto py-6 text-center text-[13px] text-fg-muted">${text}</li>`;
+
+    function renderComments() {
+      list.innerHTML = comments.length ? comments.map(commentMarkup).join('') : notice('No comments yet. Be the first.');
+    }
+
+    async function loadComments() {
+      const request = ++commentsLoaded;
+      comments = [];
+      list.innerHTML = notice('Loading comments…');
+      try {
+        const loaded = await api(`/api/projects/${project.id}/comments`);
+        if (request !== commentsLoaded) return;
+        comments = loaded;
+        renderComments();
+        list.scrollTop = list.scrollHeight; // newest at the bottom, like a chat
+      } catch {
+        if (request === commentsLoaded) list.innerHTML = notice("Couldn't load comments.");
+      }
+    }
+
+    const setStatus = (text, error = false) => {
+      status.textContent = text;
+      status.classList.toggle('text-danger', error);
+      status.classList.toggle('text-fg-muted', !error);
+    };
+    const syncSend = () => (sendButton.disabled = sending || !bodyInput.value.trim());
+
+    function open(id) {
+      project = projects.find((p) => p.id === id);
+      if (!project) return;
+      images = [project.image, ...(project.gallery ?? [])].filter(Boolean);
+      renderGallery();
+      renderDetails();
+      nameInput.value = commentState.name;
+      bodyInput.value = '';
+      setStatus(HINT);
+      syncSend();
+      loadComments();
+      if (!dialog.open) dialog.showModal();
+      // Focus the dialog itself, so the arrow keys work and nothing shows a focus ring yet.
+      dialog.focus();
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const body = bodyInput.value.trim();
+      if (!body || sending) return;
+      const name = nameInput.value.trim();
+      const target = project;
+
+      sending = true;
+      syncSend();
+      setStatus('Sending…');
+      try {
+        const comment = await api(`/api/projects/${target.id}/comments`, { method: 'POST', body: { name, body } });
+        commentState.name = name;
+        commentState.mine.add(comment.id);
+        saveCommentState();
+        if (target !== project) return; // the visitor moved on to another project meanwhile
+        bodyInput.value = '';
+        setStatus(HINT);
+        comments.push(comment);
+        renderComments();
+        list.lastElementChild.classList.add('new');
+        list.scrollTop = list.scrollHeight;
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        sending = false;
+        syncSend();
+      }
+    });
+    bodyInput.addEventListener('input', syncSend);
+    bodyInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) form.requestSubmit();
+    });
+
+    dialog.addEventListener('click', async (event) => {
+      // A click outside the panels lands on the <dialog> itself (its backdrop).
+      if (event.target === dialog || event.target.closest('[data-close]')) return dialog.close();
+
+      const thumb = event.target.closest('[data-thumb]');
+      if (thumb) return show(Number(thumb.dataset.thumb));
+      const step = event.target.closest('[data-step]');
+      if (step) return show(current + Number(step.dataset.step));
+      const star = event.target.closest('[data-star]');
+      if (star) return toggleStar(Number(star.dataset.star));
+      // The pencil opens the editor (initEditor's handler); this one only gets the preview out of its way.
+      if (event.target.closest('[data-edit]')) return dialog.close();
+
+      const remove = event.target.closest('[data-delete-comment]');
+      if (remove && confirm('Delete this comment?')) {
+        const id = Number(remove.dataset.deleteComment);
+        try {
+          await api(`/api/comments/${id}`, { method: 'DELETE' });
+          comments = comments.filter((comment) => comment.id !== id);
+          renderComments();
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    });
+    dialog.addEventListener('keydown', (event) => {
+      if (event.target.closest('input, textarea')) return;
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'ArrowRight') show(current + 1);
+    });
+    dialog.addEventListener('close', hideTooltip);
+
+    return { open };
   }
 
   // CalVer-style tag from a role's start month: 'Aug 2025 – Present' → 'v2025.08'.
@@ -614,7 +925,7 @@
 
   // ---- Command palette: "/" or Ctrl/⌘+K, like GitHub's search ----
 
-  function initPalette(revealProject) {
+  function initPalette(revealProject, openPreview) {
     const dialog = $('#palette');
     const input = $('#palette-input');
     const list = $('#palette-list');
@@ -635,12 +946,12 @@
           group: 'Repositories',
           icon: ICONS.book,
           label: project.name,
-          hint: `${project.type}${project.url ? ' ↗' : ''}`,
+          hint: project.type,
           keywords: [project.language, ...project.stack].join(' '),
           run: () => {
-            if (project.url) return openTab(project.url);
             revealProject(i);
             goTo('projects');
+            openPreview(project.id);
           },
         })),
         {
@@ -874,6 +1185,7 @@
       .map((item) => item.trim())
       .filter(Boolean);
   const FIELD_TYPES = {
+    gallery: { show: (images) => JSON.stringify(images), read: (text) => JSON.parse(text || '[]') },
     list: { show: (items) => items.join(', '), read: splitBy(',') },
     lines: { show: (items) => items.join('\n'), read: splitBy('\n') },
     roles: {
@@ -916,11 +1228,19 @@
       items: () => projects,
       added: () => projectView.reveal(projects.length - 1), // new projects go last
       fields: [
-        { name: 'image', label: 'Screenshot', type: 'image' },
+        { name: 'image', label: 'Cover image', type: 'image' },
+        { name: 'gallery', label: 'More screenshots', type: 'gallery' },
         { name: 'name', label: 'Name', required: true },
         { name: 'type', label: 'Type', hint: 'For example Work, Freelance or Personal' },
         { name: 'language', label: 'Main language', hint: 'Sets the colored dot' },
-        { name: 'description', label: 'Description', type: 'textarea' },
+        { name: 'description', label: 'Description', type: 'textarea', hint: 'Shown on the card' },
+        {
+          name: 'details',
+          label: 'Details',
+          type: 'textarea',
+          rows: 6,
+          hint: 'Shown in the project preview. Leave a blank line between paragraphs.',
+        },
         { name: 'stack', label: 'Stack', type: 'list', hint: 'Comma-separated' },
         { name: 'url', label: 'Link', type: 'url', placeholder: 'https://github.com/…' },
       ],
@@ -953,7 +1273,25 @@
     },
   };
 
+  const imageTypes = 'image/jpeg,image/png,image/gif,image/webp';
+
   function fieldMarkup({ name, label, type = 'text', hint, rows = 3, required, placeholder }) {
+    if (type === 'gallery') {
+      return `
+        <div data-gallery>
+          <span class="text-sm font-medium">${label}</span>
+          <input type="hidden" name="${name}">
+          <ul data-list class="mt-1.5 flex flex-wrap gap-2 empty:hidden"></ul>
+          <div class="mt-2 flex flex-wrap items-center gap-3">
+            <label class="${smallButton} has-focus-visible:ring-2 has-focus-visible:ring-accent">
+              ${icon(ICONS.plus, 'size-3.5')} Add images
+              <input type="file" multiple accept="${imageTypes}" class="sr-only">
+            </label>
+            <span data-status class="text-xs text-fg-muted" aria-live="polite"></span>
+          </div>
+          <span class="mt-1 block text-xs text-fg-muted">Shown after the cover in the project preview, in this order. Up to 20.</span>
+        </div>`;
+    }
     if (type === 'image') {
       return `
         <div data-image>
@@ -963,7 +1301,7 @@
             <img alt="" class="size-16 rounded-md border border-line object-cover">
             <label class="${smallButton} has-focus-visible:ring-2 has-focus-visible:ring-accent">
               Upload image
-              <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="sr-only">
+              <input type="file" accept="${imageTypes}" class="sr-only">
             </label>
             <button type="button" data-remove class="${smallButton}">Remove</button>
             <span data-status class="text-xs text-fg-muted" aria-live="polite"></span>
@@ -1013,6 +1351,67 @@
     });
   }
 
+  // A list of images kept as JSON in a hidden input. Picked files upload one by one and are added at the end;
+  // each thumbnail can move one place earlier or be removed.
+  function initGalleryField(wrapper, setUploading) {
+    const value = wrapper.querySelector('input[type=hidden]');
+    const list = wrapper.querySelector('[data-list]');
+    const file = wrapper.querySelector('input[type=file]');
+    const status = wrapper.querySelector('[data-status]');
+    let images = JSON.parse(value.value || '[]');
+
+    const control = 'grid size-5 cursor-pointer place-items-center rounded bg-black/60 text-white hover:bg-black/80';
+    const show = () => {
+      value.value = JSON.stringify(images);
+      list.innerHTML = images
+        .map(
+          (src, i) => `
+            <li class="relative">
+              <img src="${escapeHtml(assetUrl(src))}" alt="Screenshot ${i + 1}" class="h-16 w-24 rounded-md border border-line object-cover">
+              <div class="absolute top-1 right-1 flex gap-1">
+                ${i ? `<button type="button" data-move="${i}" aria-label="Move screenshot ${i + 1} earlier" class="${control}">${icon(ICONS.chevronLeft, 'size-3')}</button>` : ''}
+                <button type="button" data-drop="${i}" aria-label="Remove screenshot ${i + 1}" class="${control}">${icon(ICONS.x, 'size-3')}</button>
+              </div>
+            </li>`,
+        )
+        .join('');
+    };
+    show();
+
+    list.addEventListener('click', (event) => {
+      const move = event.target.closest('[data-move]');
+      const drop = event.target.closest('[data-drop]');
+      if (move) {
+        const i = Number(move.dataset.move);
+        [images[i - 1], images[i]] = [images[i], images[i - 1]];
+      } else if (drop) {
+        images.splice(Number(drop.dataset.drop), 1);
+      } else {
+        return;
+      }
+      show();
+    });
+    file.addEventListener('change', async () => {
+      const files = [...file.files];
+      file.value = '';
+      setUploading(1);
+      try {
+        for (const [i, picked] of files.entries()) {
+          status.textContent = `Uploading ${i + 1} of ${files.length}…`;
+          const body = new FormData();
+          body.append('file', picked);
+          images.push((await api('/api/uploads', { method: 'POST', body })).url);
+          show();
+        }
+        status.textContent = '';
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        setUploading(-1);
+      }
+    });
+  }
+
   function initEditor() {
     const dialog = $('#editor');
     const form = $('#editor-form');
@@ -1051,6 +1450,7 @@
         form.elements.namedItem(name).value = show ? show(values[name] ?? []) : (values[name] ?? '');
       }
       fields.querySelectorAll('[data-image]').forEach((wrapper) => initImageField(wrapper, setUploading));
+      fields.querySelectorAll('[data-gallery]').forEach((wrapper) => initGalleryField(wrapper, setUploading));
 
       deleteButton.hidden = !item;
       uploading = 0;
@@ -1140,11 +1540,12 @@
   admin = Boolean(session?.admin);
   if (session?.admin === false) forgetToken();
 
-  const projectView = initProjects();
+  const preview = initPreview();
+  const projectView = initProjects(preview.open);
   const updateScrollSpy = initScrollSpy();
   $('#status').remove();
   render();
   renderContributions();
-  initPalette(projectView.reveal);
+  initPalette(projectView.reveal, preview.open);
   initEditor();
 })();

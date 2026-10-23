@@ -21,9 +21,13 @@
   --color-danger: #f85149;
   --color-tab-active: #f78166;
   --color-star: #e3b341;
+  /* Comment bubbles in the project preview: the visitor's own, and the shadow they float on. */
+  --color-own: #1d3a5c;
+  --color-shadow: rgb(0 0 0 / 0.35);
 
   /* GitHub linguist colors; the same in both themes. */
   --color-lang-php: #4f5d95;
+  --color-lang-laravel: #ff2d20;
   --color-lang-go: #00add8;
   --color-lang-python: #3572a5;
   --color-lang-javascript: #f1e05a;
@@ -56,6 +60,8 @@
     --color-danger: #d1242f;
     --color-tab-active: #fd8c73;
     --color-star: #bf8700;
+    --color-own: #ddf4ff;
+    --color-shadow: rgb(31 35 40 / 0.08);
 
     --color-contrib-0: #eff2f5;
     --color-contrib-1: #aceebb;
@@ -76,5 +82,28 @@
 
   dialog::backdrop {
     background: rgb(1 4 9 / 0.6);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #preview[open] {
+      animation: preview-in 0.18s ease-out;
+    }
+    #preview-comments > .new {
+      animation: comment-in 0.25s ease-out;
+    }
+  }
+}
+
+@keyframes preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+@keyframes comment-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
